@@ -1,15 +1,14 @@
 #Importing packages we need
 import csv
 # List of all files we want to get data from
-files = ["12.29", "1.1", "1.2", "1.3", "1.4", "1.7"]
+files = ["12.29", "1.1", "1.2", "1.3", "1.4", "1.7", "1.14"]
 # Variables which keep track of total data, not data by file
-val = ""
-flop_count = 0
-paired_flop_count = 0
 player_name = "SIMON"
 num_hands = 0
 stack = ""
 total_stack = 0
+buy_backs = 0
+total_buy_in = 0
 
 # Loops through and opens and reads from each file
 for name in files:
@@ -32,32 +31,7 @@ for name in files:
                     token = token[:idx - 1] + token[idx + 12:]
                     length = len(token)
                 idx += 1
-            
-            # Look at all tokens which give us the flop of a hand
-            if token[0] == 'F':
-                index = 8
-                # Look at the first card on the flop
-                c1 = token[index]
-                if c1 == '1':
-                    index += 1
-                    c1 += token[index]
-                index += 6
-                # Look at the second card on the flop
-                c2 = token[index]
-                if c2 == '1':
-                    index += 1
-                    c2 += token[index]
-                index += 6
-                # Look at the third card on the flop
-                c3 = token[index]
-                if c3 == '1':
-                    index += 1
-                    c3 += token[index]
-                # Check to see if we have a paired flop
-                if c1 == c2 or c1 == c3 or c2 == c3:
-                    paired_flop_count += 1
-                flop_count += 1
-
+        
             # Look at all tokens which give us player stacks
             if token[0] == 'P':
                 if token.find(player_name) != -1:
@@ -69,10 +43,18 @@ for name in files:
                     total_stack += int(stack)
                     stack = ""
 
-print("Printing data about the flops:")
-print("Number of flops: " + str(flop_count))
-print("Number of paired flops: " + str(paired_flop_count))
-print("This equates to: " + str((paired_flop_count * 100.0) / flop_count) + "% of flops being paired.")
-print("Normally we would expect about 17% of flops to be paired.")
-print("------------------------------------------------------")
+            # Find the number of times the given player has bought in and how much theyve bought in for in total
+            buy_in = ""
+            if token.find('participation') != -1 and token.find(player_name) != -1:
+                buy_backs += 1
+                idx = token.find('of ') + 3
+                while token[idx] != '.' and len(buy_in) <= 3:
+                    buy_in += token[idx]
+                    idx += 1
+                total_buy_in += int(buy_in)
+
+
+
 print("Average stack for " + player_name + ": " + str(total_stack * 1.0 / num_hands))
+print("Number of buy ins for " + player_name + ": " + str(buy_backs))
+print(player_name + " bought in for a total of: " + str(total_buy_in))
